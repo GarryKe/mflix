@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/search.js" defer></script>
+    <title>Document</title>
+</head>
+<body>
+    <%- include('partials/header') %>
+    <%- include('partials/suggestion_box') %>
+    <!--Home page tab-->
+    <div class="tabcontent" id="home-tab">       
+        <!--Trending Movies-->
+        <div class="featured-category" id="trending">
+            <div class="title" id="trending-title">TRENDING TITLES</div>
+            <div class="featured-category-hold" id="trending-titles-hold">
+                <% trending.forEach(movie => { %>
+                    <div class="item">
+                        <div class="item-image" style='background-image: url("<%= movie.poster %>");' onclick="window.location.href='/details/<%= movie.id %>'"></div>
+                        <div class="item-desc">
+                            <p class="name"><%= movie.title %></p>
+                            <p class="rating"><%= movie.imdb.rating %></p>
+                        </div>
+                    </div>
+                <% }) %>
+                <!--skeleton and spinner-->
+                <%- include('partials/skeleton', { category: 'trending' }) %>
+            </div>
+        </div>
+        <!--New Releases-->
+        <div class="featured-category" id="new">
+            <div class="title" id="new-title">NEW RELEASES</div>
+            <div class="featured-category-hold" id="new-titles-hold">
+                <% newReleases.forEach(movie => { %>
+                    <div class="item">
+                        <div class="item-image" style='background-image: url("<%= movie.poster %>");' onclick="window.location.href='/details/<%= movie.id %>'"></div>
+                        <div class="item-desc">
+                            <p class="name"><%= movie.title %></p>
+                            <p class="rating"><%= movie.imdb.rating %></p>
+                        </div>
+                    </div>
+                <% }) %>
+                <!--skeleton and spinner-->
+                <%- include('partials/skeleton', { category: 'new' }) %>
+            </div>
+        </div>
+        <!--Top Rated-->
+        <div class="featured-category" id="top-rated">
+            <div class="title" id="top-rated-title">TOP RATED</div>
+            <div class="featured-category-hold" id="top-rated-titles-hold">
+                <% topRated.forEach(movie => { %>
+                    <div class="item">
+                        <div class="item-image" style='background-image: url("<%= movie.poster %>");' onclick="window.location.href='/details/<%= movie.id %>'"></div>
+                        <div class="item-desc">
+                            <p class="name"><%= movie.title %></p>
+                            <p class="rating"><%= movie.imdb.rating %></p>
+                        </div>
+                    </div>
+                <% }) %>
+                <!--skeleton and spinner-->
+                <%- include('partials/skeleton', { category: 'top-rated' }) %>
+            </div>
+        </div>
+        <!--Picks For You-->
+        <div class="featured-category" id="picks">
+            <div class="title" id="picks-title">TOP PICKS FOR YOU</div>
+            <div class="featured-category-hold" id="picks-titles-hold">
+                <% topPicks.forEach(movie => { %>
+                    <div class="item">
+                        <div class="item-image" style='background-image: url("<%= movie.poster %>");' onclick="window.location.href='/details/<%= movie.id %>'"></div>
+                        <div class="item-desc">
+                            <p class="name"><%= movie.title %></p>
+                            <p class="rating"><%= movie.imdb.rating %></p>
+                        </div>
+                    </div>
+                <% }) %>
+                <!--skeleton and spinner-->
+                <%- include('partials/skeleton', { category: 'picks' }) %>
+            </div>
+        </div>
+    </div>
+    <!--TV Shows Page-->
+    <div class="tabcontent" id="tvshows-tab"></div>
+    <!--Movies Page-->
+    <div class="tabcontent" id="movies-tab"></div>
+    <!--Recently Added Page-->
+    <div class="tabcontent" id="recentlyadded-tab"></div>
+    <!--My List Page-->
+    <div class="tabcontent" id="mylist-tab"></div>
+</body>
+<script>
+    const createObserver = (category) => {
+    const container = document.getElementById(`${category}-titles-hold`);
+    const loadingIndicator = document.getElementById(`${category}-hold`);
+    const firstSkeleton = container.querySelector('.item-skeleton');
+    let offset = 10; // Start after the first 50 items
+    const limit = 10; // Fetch 20 items at a time
+    let loading = false;
+
+    const observer = new IntersectionObserver(async (entries) => {
+        const entry = entries[0];
+        if (entry.isIntersecting && !loading) {
+            loading = true;
+            // Fetch more items from the server
+            const response = await fetch(`/load-more?category=${category}&offset=${offset}&limit=${limit}`);
+            const data = await response.json();
+
+            // Append new items to the container
+            data.movies.forEach((movie) => {
+                const item = document.createElement('div');
+                item.className = 'item';
+                const img = new Image();
+                img.src = movie.poster;
+                img.onload = () => {
+                    item.innerHTML = `
+                        <div class="item-image" style="background-image: url('${movie.poster}');" onclick="window.location.href='/details/${movie._id}'"></div>
+                        <div class="item-desc">
+                            <p class="name">${movie.title}</p>
+                            <p class="rating">${movie.imdb.rating}</p>
+                        </div>`;
+                    container.insertBefore(item, firstSkeleton);
+                };
+                img.onerror = () => {
+                    console.error(`Failed to load image for movie: ${movie.title}`);
+                };  
+            });
+
+            // Update offset for next batch
+            offset += limit;
+            loading = false;
+
+            // If no more items, stop observing
+            if (data.movies.length < limit) {
+                observer.disconnect();
+            }
+        }
+    },{ threshold: 1 });
+
+    observer.observe(loadingIndicator);
+    };
+
+    // Initialize observers for each category
+    ['trending','new','top-rated','picks'].forEach(createObserver);
+</script>
+</html>

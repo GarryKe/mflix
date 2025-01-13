@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+    <script src="/search.js" defer></script>
+    <title>recentlyadded</title>
+</head>
+<body>
+    <%- include('partials/header') %>
+    <%- include('partials/suggestion_box') %>
+    <!--CATEGORY BUTTONS-->
+    <div id="category-buttons">
+        <div id="all" class="category-button">All</div>
+    </div>
+    <div id="<%= category %>-1-skel" class="category-page">
+        <% movies.forEach(movie => { %>
+            <div class="item">
+                <div class="item-image actual" style="background-image: url('<%= movie.poster %>');" onclick="window.location.href='/details/<%= movie.id %>'"></div>
+                <div class="item-desc">
+                    <p class="name"><%= movie.title.split(' ').length > 6 ? movie.title.split(' ').slice(0, 6).join(' ') + '...' : movie.title %></p>
+                    <p class="rating"><%= movie.imdb.rating %></p>
+                </div>
+            </div>
+        <% }) %>
+        <%- include('partials/skeleton2') %>
+    </div>
+    <%- include('partials/pagecategoryspinner') %>
+    <script src="/movies-tvshows-observer.js" data-category="<%= category %>"></script>
+    <script src="/buttons.js" data-category="<%= category %>"></script>
+</body>
+</html>

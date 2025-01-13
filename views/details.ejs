@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="/style.css">
+    <script src="/search.js" defer></script>
+    <title>details</title>
+</head>
+<body>
+    <%- include('partials/header') %>
+    <%- include('partials/suggestion_box') %>
+    <div id="single">
+        <div id="single-hold">
+            <div id="poster" style="background-image: url('<%= movie.poster %>');"></div>
+            <div id="details">
+                <p id="title-single"><%= movie.title %></p>
+                <p id="director">Directed By <span><%= movie.directors[0] %></span></p>
+                <div id="when">
+                    <p id="passed">Passed</p>
+                    <p class="when"><%= movie.year %></p>
+                    <p class="when"><%= movie.runtime %></p>
+                    <p class="when">
+                        <% movie.genres.forEach(function(genre, index) { %>
+                            <span><%= genre %></span><%= index < movie.genres.length - 1 ? ',' : '' %>
+                        <% }); %>
+                    </p>
+                </div>
+                <div id="single-rating">
+                    <div id="r-logo"></div>
+                    <p id="ratings"><%= movie.imdb.rating %></p>
+                    <i id="book" class="far fa-bookmark"></i>
+                    <i id="book1" class="fa fa-bookmark"></i>
+                </div>
+                <div id="plot">
+                    <%= movie.plot %>
+                </div>
+                <div id="cast">
+                    <p>Cast</p>
+                    <div id="names">
+                        <% movie.cast.forEach((cas)=> { %>
+                            <p><%= cas %></p>
+                        <% }); %>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--COMMENTS-->
+        <div id="comments-div">
+            <div class="title" id="comments-title">COMMENTS</div>
+            <div id="comments">
+                <% if (comments.length === 0) { %>
+                    <div id="no-comments">No comments yet</div>
+                <% } else { %>
+                    <% comments.forEach((comment)=> { %> 
+                        <div class="comment">
+                            <div id="avatar-hold">
+                                <div id="avatar"></div>
+                                <p id="name-user"><%= comment.name %></p>
+                            </div>
+                            <div id="the-comment"><%= comment.text %></div>
+                        </div>
+                    <% }); %>
+                <% } %>
+                <!-- Spinner (initially hidden, appears when more items are being loaded) -->
+                <div id="<%= category %>-hold" class="spinner-hold" style="display: <%= spinner_appear %>;">
+                    <div class="ytp-spinner" data-layer="4">
+                        <div>
+                            <div class="ytp-spinner-container">
+                                <div class="ytp-spinner-rotator">
+                                    <div class="ytp-spinner-left">
+                                        <div class="ytp-spinner-circle"></div>
+                                    </div>
+                                    <div class="ytp-spinner-right">
+                                        <div class="ytp-spinner-circle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--MORE LIKE THIS-->
+        <div class="featured-category" id="similar">
+            <div class="title" id="similar-title">MORE LIKE THIS</div>
+            <div id="more-like-this-spinner-hold1">
+                <div class="ytp-spinner" data-layer="4">
+                    <div>
+                        <div class="ytp-spinner-container">
+                            <div class="ytp-spinner-rotator">
+                                <div class="ytp-spinner-left">
+                                    <div class="ytp-spinner-circle"></div>
+                                </div>
+                                <div class="ytp-spinner-right">
+                                    <div class="ytp-spinner-circle"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="featured-category-hold" id="similar-title-hold">
+                <!--div class="item">
+                    <div class="item-image"></div>
+                    <div class="item-desc">
+                        <p class="name">Blood Justice</p>
+                        <p class="rating">7.0</p>
+                    </div>
+                </div-->
+                <div id="<%= category %>-1-hold" class="spinner-hold">
+                    <div class="ytp-spinner" data-layer="4">
+                        <div>
+                            <div class="ytp-spinner-container">
+                                <div class="ytp-spinner-rotator">
+                                    <div class="ytp-spinner-left">
+                                        <div class="ytp-spinner-circle"></div>
+                                    </div>
+                                    <div class="ytp-spinner-right">
+                                        <div class="ytp-spinner-circle"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--END MORE LIKE THIS-->
+    </div>
+</body>
+<script>
+    const movieId = "<%= movieId %>";
+    const category = "<%= category %>";
+    //Create an IntersectionObserver to load more comments when the user scrolls to the bottom of the page
+    const createObserver = (movieId,category) => {
+        const container = document.getElementById("comments");
+        const loadingIndicator = document.getElementById(`${category}-hold`);
+        let offset = 5; // Start after the first 5 items
+        const limit = 5; // Fetch 5 items at a time
+        let loading = false;
+
+        const observer = new IntersectionObserver(async (entries) => {
+            const entry = entries[0];
+            if (entry.isIntersecting && !loading) {
+                loading = true;
+                // Fetch more items from the server
+                const response = await fetch(`/load-more-comments?movieId=${movieId}&offset=${offset}&limit=${limit}`);
+                const data = await response.json();
+                //console.log(data);
+                // Append new items to the container
+                data.comments.forEach((comment) => {
+                    const comm = document.createElement('div');
+                    comm.className = 'comment';
+                    comm.innerHTML = `
+                            <div id="avatar-hold">
+                                <div id="avatar"></div>
+                                <p id="name-user">${comment.name}</p>
+                            </div>
+                            <div id="the-comment">${comment.text}</div>
+                    `;
+                    container.insertBefore(comm, loadingIndicator);
+                });
+
+                // Update offset for next batch
+                offset += limit;
+                loading = false;
+
+                // If no more items, stop observing
+                if (data.comments.length < limit) {
+                    loadingIndicator.style.display = 'none';
+                    observer.disconnect();
+                }
+            }
+        },{ threshold: 1 });
+
+        observer.observe(loadingIndicator);
+    };
+    createObserver(movieId,category);
+    //Create observer for the more like this section
+    const createObserver1 = (movieId) => {
+        const container = document.getElementById("similar-title-hold");
+        const loadingIndicator = document.getElementById("more-like-this-spinner-hold1");
+        const loadmoreIndicator = document.getElementById("details-1-hold");
+        let offset = 0; // Start after the first 0 items
+        const limit = 10; // Fetch 5 items at a time
+        const observer = new IntersectionObserver(async (entries) => {
+            const entry = entries[0];
+            if (entry.isIntersecting) {
+                // Fetch items from the server
+                const response = await fetch(`/more-like-this?movieId=${movieId}&offset=${offset}&limit=${limit}`);
+                const all_data = await response.json();
+                const data = all_data.movies;
+                const total_similar = all_data.total;
+                //console.log(data);
+                //check if data is available and hide spinner
+                if(data){
+                    loadingIndicator.style.display = 'none';
+                    container.style.display = 'flex';
+                };
+                //console.log(data);
+                // Append new items to the container
+                data.forEach((movie) => {
+                    if (movie.cast) {
+                        const item = document.createElement('div');
+                        item.className = 'item';
+                        const img = new Image();
+                        img.src = movie.poster;
+                        img.onload = () => {
+                            item.innerHTML = `
+                                <div class="item-image" style="background-image: url('${movie.poster}');" onclick="window.location.href='/details/${movie.id}'"></div>
+                                <div class="item-desc">
+                                    <p class="name">${movie.title}</p>
+                                    <p class="rating">${movie.imdb.rating}</p>
+                                </div>`;
+                            container.insertBefore(item, loadmoreIndicator);
+                        };
+                        img.onerror = () => {
+                            console.error(`Failed to load image for movie: ${movie.title}`);
+                        };
+                    }
+                });
+                if (total_similar > 10) {
+                    loadmoreIndicator.style.display = 'flex';
+                }
+                //disconnect observer
+                observer.disconnect();
+                
+            }
+        },{ threshold: 0.5 });
+        observer.observe(loadingIndicator);
+    };
+    //call the observer for the more like this section
+    createObserver1(movieId);
+
+    //Create observer for the load more similar movies
+    const createObserver2 = (movieId) => {
+        const container = document.getElementById("similar-title-hold");
+        const loadmoreIndicator = document.getElementById("details-1-hold");
+        let offset = 10; // Start after the first 10 items
+        const limit = 10; // Fetch 10 items at a time
+        let loading = false;
+        const observer = new IntersectionObserver(async (entries) => {
+            const entry = entries[0];
+            if (entry.isIntersecting && !loading) {
+                loading = true;
+                // Fetch items from the server
+                const response = await fetch(`/more-like-this?movieId=${movieId}&offset=${offset}&limit=${limit}`);
+                const data = await response.json();
+                console.log(data);
+                // Append new items to the container
+                data.movies.forEach((movie) => {
+                    if (movie.cast) {
+                    const item = document.createElement('div');
+                    item.className = 'item';
+                    const img = new Image();
+                    img.src = movie.poster;
+                    img.onload = () => {
+                        item.innerHTML = `
+                            <div class="item-image" style="background-image: url('${movie.poster}');" onclick="window.location.href='/details/${movie.id}'"></div>
+                            <div class="item-desc">
+                                <p class="name">${movie.title}</p>
+                                <p class="rating">${movie.imdb.rating}</p>
+                            </div>`;
+                        container.insertBefore(item, loadmoreIndicator);
+                    };
+                    img.onerror = () => {
+                        console.error(`Failed to load image for movie: ${movie.title}`);
+                    };
+                 }
+                });
+                // Update offset for next batch
+                offset += limit;
+                loading = false;
+                // If no more items, stop observing
+                if (data.movies.length < limit) {
+                    loadmoreIndicator.style.display = 'none';
+                    observer.disconnect();
+                }
+            }
+        },{ threshold: 1 });
+        observer.observe(loadmoreIndicator);
+    };
+    createObserver2(movieId);
+</script>
+</html>

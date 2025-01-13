@@ -1,0 +1,29 @@
+<div id="header">
+    <div id="logo"></div>
+    <div id="nav-items">
+        <button class="<%= (activePage === 'home' || activePage === 'details') ? 'active' : 'nav-item' %>" id="home" onclick="window.location.href='/home'">
+            <p>Home</p>
+        </button>
+        <button class="<%= activePage === 'tvshows' ? 'active' : 'nav-item' %>" id="tvshows" onclick="window.location.href='/tvshows'">
+            <p>Tv Shows</p>
+        </button>
+        <button class="<%= activePage === 'movies' ? 'active' : 'nav-item' %>" id="movies" onclick="window.location.href='/movies'">
+            <p>Movies</p>
+        </button>
+        <button class="<%= activePage === 'recentlyadded' ? 'active' : 'nav-item' %>" id="recentlyadded" onclick="window.location.href='/recentlyadded'">
+            <p>Recently Added</p>
+        </button>
+        <button class="<%= activePage === 'mylist' ? 'active' : 'nav-item' %>" id="mylist" onclick="window.location.href='/mylist'">
+            <p>My List</p>
+        </button>
+    </div>
+    <div id="search-n-avatar">
+        <div id="search">
+            <input type="text" id="searchInput">
+            <div id="search_icon">
+                <i class="fa fa-search"></i>
+            </div>
+        </div>
+        <div id="avatar1"></div>
+    </div>
+</div>
