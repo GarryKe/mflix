@@ -8,7 +8,7 @@ const debounce = (func, delay) => {
   
   const searchMovies = async (query) => {
     try {
-      const response = await fetch(`http://localhost:3000/search?q=${query}`);
+      const response = await fetch(`/search?q=${query}`);
       if (!response.ok) {
         throw new Error("Failed to fetch movies");
       }
